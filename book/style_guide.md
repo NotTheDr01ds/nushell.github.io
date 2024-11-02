@@ -6,13 +6,13 @@ progress and _subject to change_.
 
 There may be exceptions or extensions to these guidelines which are not yet documented.
 
-We welcome discussion and contributions.
+As with all aspects of Nushell, we welcome discussion and contributions.
 
 Keep in mind that these guidelines are not required in external repositories (not ours). You are, of course, free
 to use any formatting style you wish. For Nushell documentation and repositories, we will eventually try to converge on
 the recommendations here, but for now a variety of styles from multiple authors are present.
 
-In this document, escape sequences should not be interpreted literally, unless directed to do so. In other words,
+Note: In this document, escape sequences should not be interpreted literally, unless directed to do so. In other words,
 treat something like `\n` like the new line character and not a literal slash followed by `n`.
 
 ## Formatting
@@ -20,8 +20,9 @@ treat something like `\n` like the new line character and not a literal slash fo
 ### Basic Spacing
 
 - A single space _IS RECOMMENDED_ before and after pipe (`|`) symbols, operators, commands, subcommands, their options and arguments, except before/after a token at the beginning/end of a line.
-- Multiple consecutive spaces _ARE NOT RECOMMENDED_ unless they are part of string or table literal.
+- Multiple consecutive spaces _ARE NOT RECOMMENDED_ unless they are part of a string or table literal.
 - A single blank line _IS RECOMMENDED_ at the end of a file.
+- Trailing whitespace at the end of a line is _NOT RECOMMENDED_
 - Whitespace between a record key name and the key-value separator `:` _IS NOT RECOMMANDED_
 - A single space following the key-value separator `:` _IS RECOMMENDED_
 
@@ -89,16 +90,12 @@ Nushell, of course, offers an extensive set of string quoting options. In genera
       'Nissan Pulsar'
       Mazda2
   ]
-  ```
 
   # Incorrect
-
   # TODO
-
   ```
+
   :::
-
-  ```
 
 - Using bareword strings _IS RECOMMENDED FOR_ record key names when there are no special characers that require other quotes. Quotes _ARE RECOMMENDED_ around record values which are strings.
 
@@ -150,6 +147,22 @@ Nushell, of course, offers an extensive set of string quoting options. In genera
 ### Short-form vs. Long-form
 
 Many Nushell constructs should be formatted differently depending on their length or complexity. In general, the "short-form" will fit on one line, while the "long-form" will require multiple lines.
+
+In general, in short-form:
+
+- Opening-bracket characters such as `{`, `[`, and `(` _SHOULD_ be preceded by a space when not at the beginning of a line _AND_ not preceeded by another opening-bracket character.
+- The corresponding closing-bracket characters _SHOULD_ be followed by a space when not at the end of a line _AND_ not followed by another closing-bracket character.
+
+  ::: details Example
+
+  ```nu
+  # TODO
+  (1 + 2) * 3
+  # Incorrect
+  (1 + 2 ) * 3
+  ```
+
+  :::
 
 #### Lists
 
@@ -615,181 +628,42 @@ For long-form subexpressions, see the [Assignments](#assignments) section above.
 - Long-form _IS RECOMMENDED WHEN_ there are type definitions or default values.
 - Long-form _IS REQUIRED_ by the parser when there are documentation comments for parameters.
 
-### Line-breaks
-
-Some Nushell commandlines will be more readable when on a single line, while others should be split across multiple lines.
-
-#### Single-line Format
-
-Single-line Rules:
-
-2. block and closure bodies:
-   1. **It's recommended to** put one space after opening block or closure curly brace `{` if no explicit parameters defined.
-   2. **It's recommended to** put one space before closing block or closure curly brace `}`.
-3. records:
-   1. **It's recommended to** put one space after `:` after record key.
-   2. **It's recommended to** put one space after comma `,` after key value.
-4. lists:
-   1. **It's recommended to** put one space after comma `,` after list value.
-5. surrounding constructs:
-   1. **It's recommended to** put one space before opening square `[`, curly brace `{`, or parenthesis `(` if preceding symbol is not the same.
-   2. **It's recommended to** put one space after closing square `]`, curly brace `}`, or parenthesis `)` if following symbol is not the same.
-
-Correct:
-
-```nu
-[[status]; [UP] [UP]] | all {|el| $el.status == UP }
-[1 2 3 4] | reduce {|item, acc| $item + $acc }
-{x: 1, y: 2}
-{x: 1 y: 2}
-[1 2] | zip [3 4]
-[]
-(1 + 2) * 3
-```
-
-Incorrect:
-
-```nu
-# too many spaces before "|el|": no space is allowed
-[[status]; [UP] [UP]] | all { |el| $el.status == UP }
-
-# too many spaces before ",": no space is allowed
-[1 2 3 4] | reduce {|item , acc| $item + $acc }
-
-# too many spaces before "x": no space is allowed
-{ x: 1, y: 2}
-
-# too many spaces before "[3": one space is required
-[1 2] | zip  [3 4]
-
-# too many spaces before "]": no space is allowed
-[ ]
-
-# too many spaces before ")": no space is allowed
-(1 + 2 ) * 3
-```
-
-#### Multi-line Format
-
-Multi-line format is a format for writing all commands in several lines. It inherits all rules from one-line format
-and modifies them slightly.
-
-**It's recommended to** default to this format:
-
-1. while you are writing scripts
-2. in scripts for lists and records while they either:
-   1. more than 80 characters long
-   2. contain nested lists or records
-3. for pipelines more 80 characters long
-
-Rules:
-
-1. general:
-   1. **It's required to omit** trailing spaces.
-2. block and closure bodies:
-   1. **It's recommended to** put each body pipeline on a separate line.
-3. records:
-   1. **It's recommended to** put each record key-value pair on separate line.
-4. lists:
-   1. **It's recommended to** put each list item on separate line.
-5. surrounding constructs:
-   1. **It's recommended to** put one `\n` before opening square `[`, curly brace `{`, or parenthesis `(` if preceding symbol is not the and applying this rule produce line with a singular parenthesis.
-   2. **It's recommended to** put one `\n` after closing square `]`, curly brace `}`, or parenthesis `)` if following symbol is not the same and applying this rule produce line with a singular parenthesis.
-
-Correct:
-
-```nu
-[[status]; [UP] [UP]] | all {|el|
-    $el.status == UP
-}
-
-[1 2 3 4] | reduce {|item, acc|
-    $item + $acc
-}
-
-{x: 1, y: 2}
-
-[
-  {name: "Teresa", age: 24},
-  {name: "Thomas", age: 26}
-]
-
-let selectedProfile = (for it in ($credentials | transpose name credentials) {
-    echo $it.name
-})
-```
-
-Incorrect:
-
-```nu
-# too many spaces before "|el|": no space is allowed (like in one-line format)
-[[status]; [UP] [UP]] | all { |el|
-    # too few "\n" before "}": one "\n" is required
-    $el.status == UP}
-
-# too many spaces before "2": one space is required (like in one-line format)
-[1  2 3 4] | reduce {|item, acc|
-    $item + $acc
-}
-
-{
-   # too many "\n" before "x": one-line format required as no nested lists or record exist
-   x: 1,
-   y: 2
-}
-
-# too few "\n" before "{": multi-line format required as there are two nested records
-[{name: "Teresa", age: 24},
-  {name: "Thomas", age: 26}]
-
-let selectedProfile = (
-    # too many "\n" before "foo": no "\n" is allowed
-    for it in ($credentials | transpose name credentials) {
-        echo $it.name
-})
-```
-
-## Naming Convention
+## Naming Conventions
 
 ### Abbreviations and Acronyms
 
-**It's recommended** to use full concise words over abbreviations and acronyms, unless they are well-known and/or
-commonly used.
+Abbreviations and acroynms _SHOULD_ only be used when they are well-known or commonly userd.
 
-Correct:
+::: details Example
 
 ```nu
+# Correct
 query-user --id 123
 
-$user.name | str downcase
-```
-
-Incorrect:
-
-```nu
+# Incorrect
 qry-usr --id 123
-
-$user.name | string downcase
 ```
+
+:::
 
 ### Case
 
 #### Commands
 
-**It's recommended to** use kebab-case for command names with multiple words.
+Kebab-case _IS RECOMMENDED_ for command names with multiple-words.
 
-Correct:
+::: details Example
 
 ```nu
+# Correct
 fetch-user --id 123
-```
 
-Incorrect:
-
-```nu
+# Incorrect
 fetch_user --id 123
 fetchUser --id 123
 ```
+
+:::
 
 See also [Naming Commands](custom_commands.md#naming-commands).
 
