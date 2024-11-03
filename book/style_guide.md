@@ -1,64 +1,36 @@
 # Best Practices
 
-This page is a working document collecting syntax guidelines and best practices we have discovered so far.
-The goal of this document is to eventually land on a canonical Nushell code style, but for now it is still work in
-progress and _subject to change_.
+(Also known as, "Style Guide")
+
+[[toc]]
+
+## Overview
+
+This is a working document collecting syntax guidelines and best practices we have discovered so far.
+The goal of this document is to eventually land on a canonical Nushell code style, but for now it is still work in progress and _subject to change_.
 
 There may be exceptions or extensions to these guidelines which are not yet documented.
 
 As with all aspects of Nushell, we welcome discussion and contributions.
 
-Keep in mind that these guidelines are not required in external repositories (not ours). You are, of course, free
-to use any formatting style you wish. For Nushell documentation and repositories, we will eventually try to converge on
-the recommendations here, but for now a variety of styles from multiple authors are present.
+Keep in mind that these guidelines are not required in external repositories (not ours). You are, of course, free to use any formatting style you wish. For Nushell documentation and repositories, we will eventually try to converge on the recommendations here, but for now a variety of styles from multiple authors are present.
 
-Note: In this document, escape sequences should not be interpreted literally, unless directed to do so. In other words,
-treat something like `\n` like the new line character and not a literal slash followed by `n`.
+Examples in command-help should, by necessity, be as short as possible and will often need to deviate from many of the guidelines below.
 
-## Formatting
+Note: In this document, escape sequences should not be interpreted literally, unless directed to do so. In other words, a `\n` represents newline character and not a literal slash followed by `n`.
 
-### Basic Spacing
-
-- A single space _IS RECOMMENDED_ before and after pipe (`|`) symbols, operators, commands, subcommands, their options and arguments, except before/after a token at the beginning/end of a line.
-- Multiple consecutive spaces _ARE NOT RECOMMENDED_ unless they are part of a string or table literal.
-- A single blank line _IS RECOMMENDED_ at the end of a file.
-- Trailing whitespace at the end of a line is _NOT RECOMMENDED_
-- Whitespace between a record key name and the key-value separator `:` _IS NOT RECOMMANDED_
-- A single space following the key-value separator `:` _IS RECOMMENDED_
-
-::: details Examples
-
-```nu
-# Correct
-'Hello, Nushell! This is a gradient.' | ansi gradient --fgstart '0x40c9ff' --fgend '0xe81cff'
-
-# Incorrect - Two spaces after the pipe symbol:
-'Hello, Nushell! This is a gradient.' |  ansi gradient --fgstart '0x40c9ff' --fgend '0xe81cff'
-
-# Correct (See "short-form" assignments and records below for more info)
-let colors = {foreground: "blue, background: "white"}
-
-# Incorrect - Extra space before separator
-let colors = {foreground : "blue, background : "white"}
-
-# Incorrect - No space after separator
-let colors = {foreground:"blue, background:"white"}
-```
-
-:::
-
-### String Quoting
+## String Quoting
 
 Nushell, of course, offers an extensive set of string quoting options. In general, the following forms are preferred:
 
-- For most strings, either single-quotes or double-quotes are acceptible, but it _IS RECOMMENDED_ that usage be consistent within any given file.
+- For most strings, either single-quotes or double-quotes are acceptable, but it _IS RECOMMENDED_ that usage be consistent within any given file.
 
 - Using single-quotes _IS RECOMMENDED WHEN_ there are literal backslash characters in the string and no backslashes should be interpreted as escapes. This is commonly the case in Regex expressions.
 
   ::: details Example
 
   ```nu
-  # Correct - Using single quotes allows backslash to be used easily in a regex
+  # Correct - Using single quotes allows backslashes to be used easily in a regex
   'String contains one or more digits 4' =~ '\d'
 
   # Incorrect - Double-quotes requires additional escaping of backslash
@@ -67,13 +39,20 @@ Nushell, of course, offers an extensive set of string quoting options. In genera
 
   :::
 
-- Using bareword strings _IS RECOMMENDED FOR_ simple lists of strings. Otherwise, quoted strings _ARE RECOMMENDED WHEN_ strings in the list contain spaces or other characters that require additional quotes.
+- Using bareword strings _IS RECOMMENDED FOR_ simple lists of strings. Otherwise, quoted strings _ARE RECOMMENDED WHEN_ any string in the list contains spaces or other characters that require additional quotes.
 
   ::: details Examples
 
   ```nu
-  # Correct
-  [item1 item2 item3]
+  # Correct - Simple strings with no special characters or spacing
+  [item1, item2, item3]
+
+  # Correct - Quote strings with special characters, even if
+  # allowed as bareword strings by the parser
+  ["item1", "item1-a", "item1-b"]
+
+  # Incorrect - All items should be quoted for consistency
+  [item1, "item1-a", "item1-b"]
 
   # Correct
   [
@@ -83,21 +62,20 @@ Nushell, of course, offers an extensive set of string quoting options. In genera
       'Mazda2'
   ]
 
-  # Incorrect - "Placeholder" should be quoted for consistency
+  # Incorrect - "Mazda2" should be quoted for consistency
   [
       'Ford F-150'
       'Peugeot 508'
       'Nissan Pulsar'
       Mazda2
   ]
-
-  # Incorrect
-  # TODO
   ```
 
   :::
 
-- Using bareword strings _IS RECOMMENDED FOR_ record key names when there are no special characers that require other quotes. Quotes _ARE RECOMMENDED_ around record values which are strings.
+- Using bareword strings _IS RECOMMENDED FOR_ record key names when there are no special characters that require other quotes.
+
+* Quotes _ARE RECOMMENDED_ around record values which are strings.
 
   ::: details Example
 
@@ -130,41 +108,69 @@ Nushell, of course, offers an extensive set of string quoting options. In genera
 
   :::
 
-- Using raw strings _IS RECOMMENDED WHEN_ the text contains other quotation marks within it and interpolation is not needed.
+- Raw strings _ARE RECOMMENDED WHEN_ the text contains other quotation marks within it and interpolation is not needed.
 
   ::: details Example
 
   ```nu
   # Correct
-  r#'We said, "Shouldn't you use a raw string here?"'#
+  r#'You said, "Shouldn't you use a raw string here?"'#
 
   # Incorrect
-  "We said, \"Shouldn't you use a raw string here?\""
+  "You said, \"Shouldn't you use a raw string here?\""
   ```
 
   :::
 
-### Short-form vs. Long-form
+## Short-form vs. Long-form
 
 Many Nushell constructs should be formatted differently depending on their length or complexity. In general, the "short-form" will fit on one line, while the "long-form" will require multiple lines.
 
+### Basic Spacing Guidelines in Both Short-form and Long-form
+
+- A single space _IS RECOMMENDED_ before and after pipe (`|`) symbols, operators, commands, subcommands, their options and arguments, except before (except indentation) or after a token at the beginning/end of a line.
+- Multiple consecutive spaces _ARE NOT RECOMMENDED_ unless they are part of a string or table literal.
+- A single blank line _IS RECOMMENDED_ at the end of a file.
+- Trailing whitespace at the end of a line is _NOT RECOMMENDED_
+
+::: details Examples
+
+```nu
+# Correct
+'Hello, Nushell! This is a gradient.' | ansi gradient --fgstart '0x40c9ff' --fgend '0xe81cff'
+
+# Incorrect - Two spaces after the pipe symbol:
+'Hello, Nushell! This is a gradient.' |  ansi gradient --fgstart '0x40c9ff' --fgend '0xe81cff'
+```
+
+:::
+
+### Basic Short-form Guidelines
+
 In general, in short-form:
 
-- Opening-bracket characters such as `{`, `[`, and `(` _SHOULD_ be preceded by a space when not at the beginning of a line _AND_ not preceeded by another opening-bracket character.
+- Opening-bracket characters such as `{`, `[`, and `(` _SHOULD_ be preceded by a space when not at the beginning of a line _AND_ not preceded by another opening-bracket character.
 - The corresponding closing-bracket characters _SHOULD_ be followed by a space when not at the end of a line _AND_ not followed by another closing-bracket character.
 
   ::: details Example
 
   ```nu
-  # TODO
+  # Correct
   (1 + 2) * 3
-  # Incorrect
+
+  # Incorrect - Extra space
   (1 + 2 ) * 3
+
+  # Correct
+  [(4 + 1) (2 + 7)]
+
+  # Incorrect - Extra space between brackets
+  [ (4 + 1) (2 + 7) ]
   ```
 
   :::
 
-#### Lists
+### Lists
 
 - Short-form _IS RECOMMENDED FOR_ simple, unnested lists:
 
@@ -174,32 +180,40 @@ In general, in short-form:
 
   In short-form lists:
 
-  - A space after the opening bracket `[` _IS NOT RECOMMENDED_
-  - A space before the closing bracket `]` _IS NOT RECOMMENDED_
+  - A space after the `[` (opening bracket) _IS NOT RECOMMENDED_
+  - A space before the `]` (closing bracket) _IS NOT RECOMMENDED_
   - Delimiting list items using a comma, following by a space _IS RECOMMENDED_.
+  - Very simple lists with no symbols _MAY_ be delimited by only a space.
 
   ::: details Example
 
   ```nu
-  # Correct - Space-delimited list items
+  # Correct - Comma-delimited list items
   [Bash, Zsh, Fish, Nushell]
 
-  # Incorrect - Space-delimited list
-  # Incorrect - Also a space after the [ and before the ]
+  # Allowed - Simple space-delimited list items
+  [Bash Zsh Fish Nushell]
+  [1 2 7 9]
+
+  # Incorrect - Space after the [ and before the ]
   [ Bash Zsh Fish Nushell ]
+
+  # Incorrect - Space-delimited list of floats
+  # with symbol (the decimal point)
+  # [1.43 2.31 9.77]
   ```
 
   :::
 
-- Long-form _IS RECOMMENDED FOR_ lists with longer items, records, or other (nested) lists
+- Long-form _IS RECOMMENDED FOR_ lists with longer items, records, or other (nested) lists.
 
   ::: details Example
 
   ```nu
   [
-      {name: "Lila", status: "applied"}
-      {name: "Luca", status: "processing"}
-      {name: "Rania", status: "accepted"}
+    {name: "Lila", status: "applied"}
+    {name: "Luca", status: "processing"}
+    {name: "Rania", status: "accepted"}
   ]
   ```
 
@@ -209,7 +223,7 @@ In general, in short-form:
 
   - A newline after the opening bracket `]` _IS RECOMMENDED_.
   - A newline before the closing bracket `]` _IS RECOMMENDED_.
-  - Delimiting list-items using a line-break _IS RECOMMENDED_.
+  - Delimiting list-items using a line-break only _IS RECOMMENDED_.
   - Indenting each list-item _IS RECOMMENDED_.
   - Aligning the closing bracket `]` with the first character of line with the matching open-bracket `[`
 
@@ -218,12 +232,12 @@ In general, in short-form:
   ```nu
   # Correct
   [
-      'Ford F-150'
-      'Peugeot 508'
-      'Nissan Pulsar'
+    'Ford F-150'
+    'Peugeot 508'
+    'Nissan Pulsar'
   ]
 
-  # Incorrect - No identation
+  # Incorrect - No indentation
   [
   'Ford F-150'
   'Peugeot 508'
@@ -240,15 +254,42 @@ In general, in short-form:
   [
       'Ford F-150' 'Peugeot 508' 'Nissan Pulsar'
   ]
+
+  # Incorrect - List items are delimited by a command and a newline
+  [
+    'Ford F-150',
+    'Peugeot 508',
+    'Nissan Pulsar',
+  ]
   ```
 
   :::
 
-#### Records
+### Records
 
-Note: Some [Basic spacing](#basic-spacing) guidelines above apply to both short-form and long-form records
+See also the [Quoting guidelines](#string-quoting) above.
 
-- Short-form _IS RECOMMENDED FOR_ short records, typically those with only one or two fields
+- Some guidelines for records apply to both short-form and long-form:
+
+  - Whitespace between a record key name and the key-value separator `:` _IS NOT RECOMMANDED_
+  - A single space following the key-value separator `:` _IS RECOMMENDED_
+
+  ::: details Examples
+
+  ```nu
+  # Correct
+  {foreground: "blue", background: "white"}
+
+  # Incorrect - Extra space before separator
+  {foreground : "blue", background : "white"}
+
+  # Incorrect - No space after separator
+  {foreground:"blue", background:"white"}
+  ```
+
+  :::
+
+* Short-form _IS RECOMMENDED FOR_ short records, typically those with only one or two fields
 
   ```nu
   {key1: "Value1", key2: "Value2"}
@@ -274,17 +315,20 @@ Note: Some [Basic spacing](#basic-spacing) guidelines above apply to both short-
 
   # Incorrect - No space after comma in delimiter
   {name: "Lila",status: "applied"}
+
+  # Incorrect - extra space after comma
+  {name: "Lila",   status: "applied"}
   ```
 
-- Long-form _IS RECOMMENDED_ for longer records, either with more fields or with longer content.
-- Long-form _IS ALLOWED_ in all cases for records.
+* Long-form _IS RECOMMENDED_ for longer records, either with more fields or with longer content.
+* Long-form _IS ALLOWED_ in all cases for records.
 
   ```nu
   {
-      name: "Lila"
-      status: "applied"
-      date-applied: 2026-10-11
-      date-of-decision: null
+    name: "Lila"
+    status: "applied"
+    date-applied: 2026-10-11
+    date-of-decision: null
   }
 
   # or even
@@ -324,12 +368,12 @@ Note: Some [Basic spacing](#basic-spacing) guidelines above apply to both short-
 
   :::
 
-#### Closures
+### Closures
 
 - Short-form _IS RECOMMENDED_ for short, simple (typically two or fewer commands) closures:
 
   ```nu
-  ls | where {|file| $file.modified > ((date now) - 1day)}
+  ls | where {|file| $file.modified > ((date now) - 1day) }
   ```
 
   In short-form closures:
@@ -338,6 +382,7 @@ Note: Some [Basic spacing](#basic-spacing) guidelines above apply to both short-
   - Using a space after the opening bracket _IS RECOMMENDED WHEN_ there is not a parameter list.
   - Using a space before the closing bracket _IS RECOMMENDED_
   - Using a single space after the `|parameter list|` _IS RECOMMENDED_
+  - Providing an empty parameter list _IS ONLY RECOMMENDED WHEN_ the closure could otherwise be mistaken for a record.
   - Defining an empty closure as `{||}` _IS RECOMMENDED_
 
   ::: details Example
@@ -347,7 +392,7 @@ Note: Some [Basic spacing](#basic-spacing) guidelines above apply to both short-
   1..10 | reduce {|item acc| $item + $acc }
 
   # Correct
-  1..10 | each { $in / 2 }
+  1..10 | each { 2 ** $in$ }
 
   # Incorrect - No space after parameter list
   1..10 | reduce {|item acc|$item + $acc }
@@ -359,7 +404,7 @@ Note: Some [Basic spacing](#basic-spacing) guidelines above apply to both short-
   1..10 | reduce { |item acc| $item + $acc }
 
   # Incorrect - Missing spaces after/before brackets
-  1..10 | each {$in / 2}
+  1..10 | each {2 ** $in}
   ```
 
   :::
@@ -368,9 +413,9 @@ Note: Some [Basic spacing](#basic-spacing) guidelines above apply to both short-
 
   ```nu
   [3953 14212 14213] | each {|issue|
-      let url = "https://api.github.com/repos/nushell/nushell/issues"
-      | path join ($issue | into string)
-      http get $url | get title
+    let url = "https://api.github.com/repos/nushell/nushell/issues"
+    | path join ($issue | into string)
+    http get $url | get title
   }
   ```
 
@@ -389,44 +434,44 @@ Note: Some [Basic spacing](#basic-spacing) guidelines above apply to both short-
   ```nu
   # Correct
   [3953 14212 14213] | each {|issue|
-      let url = "https://api.github.com/repos/nushell/nushell/issues"
-      | path join ($issue | into string)
-      http get $url | get title
+    let url = "https://api.github.com/repos/nushell/nushell/issues"
+    | path join ($issue | into string)
+    http get $url | get title
   }
 
   # Incorrect - Space before the parameter list
   # Incorrect - Closing bracket is not aligned with first character of the first line
   [3953 14212 14213] | each { |issue|
-      let url = "https://api.github.com/repos/nushell/nushell/issues"
-      | path join ($issue | into string)
-      http get $url | get title }
+    let url = "https://api.github.com/repos/nushell/nushell/issues"
+    | path join ($issue | into string)
+    http get $url | get title }
   ```
 
   :::
 
-#### Blocks
+### Blocks
 
 - Short-form _IS RECOMMENDED_ for short, simple blocks where the total length does not exceed 80 characters.
 
   ```nu
-  if $f.type == dir { "  n/a" } else { $f.size }
+  if $f.type == dir { "n/a" } else { $f.size }
   ```
 
 - Long-form _IS RECOMMENDED_ for longer or more complex blocks. Naturally, most all `def` blocks will be long-form:
 
   ```nu
   def "str replace-map" [ pattern_map:record, ...cellpath:any] {
-      let table = $in
-      $pattern_map | transpose -d pattern replacement
-      | reduce -f $table {|pattern_replacement,table|
-            let pattern = $'\$($pattern_replacement.pattern)'
-            let replacement = $pattern_replacement.replacement
-            $table | str replace -r -a $pattern $replacement ...$cellpath
-        }
+    let table = $in
+    $pattern_map | transpose -d pattern replacement
+    | reduce -f $table {|pattern_replacement,table|
+        let pattern = $'\$($pattern_replacement.pattern)'
+        let replacement = $pattern_replacement.replacement
+        $table | str replace -r -a $pattern $replacement ...$cellpath
+      }
   }
   ```
 
-#### Pipelines
+### Pipelines
 
 - Short-form _IS RECOMMENDED WHEN_ the pipeline is less than ~80 characters and all its elements are short-form.
 
@@ -481,7 +526,7 @@ Note: Some [Basic spacing](#basic-spacing) guidelines above apply to both short-
     In the following example,
     the `where` filter is grouped with its input, and "flattening the values" can be thought of as a single step in the pipeline.
     It's also possible to consider the text operations on the last two lines to be a single step, but again, this is an _OPTIONAL_
-    recommentation left to the author's judgement.
+    recommendation which is left to the author's judgement.
 
     ```nu
     scope commands | where {
@@ -493,7 +538,7 @@ Note: Some [Basic spacing](#basic-spacing) guidelines above apply to both short-
     }
     ```
 
-#### Assignments
+### Assignments
 
 - Short-form _IS RECOMMEND_ for short, simple assignments.
 
@@ -512,7 +557,7 @@ Note: Some [Basic spacing](#basic-spacing) guidelines above apply to both short-
   ```nu
   # Correct
   let foo = r#'Hello, World'#
-  let id = try {$result.id | into int}
+  let id = try { $result.id | into int }
   let issue = http get https://api.github.com/repos/nushell/nushell/issues/3953
   let issue = (http get https://api.github.com/repos/nushell/nushell/issues/3953)
 
@@ -539,11 +584,11 @@ Note: Some [Basic spacing](#basic-spacing) guidelines above apply to both short-
   In long-form assignments:
 
   - Using a multi-line subexpression for the assignment _IS RECOMMENDED_
-  - Placing the opening `(` paranthesis on the line with the assignment operator _IS RECOMMENDED_
-  - A linebreak immediately following the opening paranthesis _IS RECOMMENDED_
+  - Placing the opening `(` parenthesis on the line with the assignment operator _IS RECOMMENDED_
+  - A linebreak immediately following the opening parenthesis _IS RECOMMENDED_
   - Increasing the indentation by one level starting with the next line after the `(` _IS RECOMMENDED_
-  - Aligning the `)` closing paranthese with the first character of the line on which the `(` opening
-    paranthese appeared _IS RECOMMENDED_
+  - Aligning the `)` closing parenthesis with the first character of the line on which the `(` opening
+    parenthesis appeared _IS RECOMMENDED_
 
   ::: details Examples
 
@@ -561,7 +606,7 @@ Note: Some [Basic spacing](#basic-spacing) guidelines above apply to both short-
   # Incorrect - No linebreak after (
   # Incorrect - Closing ) is not aligned properly
   # Incorrect - Subexpression is not indented one level
-  let backup_names = ( ls | where type == file
+  let backup_names = (ls | where type == file
   | each {|file|
       let parts = $file.name | path parse
       let ext = if $parts.extension == "" { "" } else { $".($parts.extension)" }
@@ -571,14 +616,14 @@ Note: Some [Basic spacing](#basic-spacing) guidelines above apply to both short-
 
   :::
 
-#### Subexpressions
+### Subexpressions
 
 - Short-form _IS RECOMMENDED_ for short, simple expressions
 - Long-form _IS RECOMMENDED_ for longer or more complex expressions:
 
 In-short form subexpressions:
 
-- Whitespace before the opening `(` and after the closing `)` _IS RECOMMENDED_ when not at the beginning or end of the line
+- Whitespace before the opening `(` or after the closing `)` _IS RECOMMENDED_ when not at the beginning or end of the line
 - Whitespace after the opening `(` or before the closing `)` _IS NOT RECOMMENDED_
 
 For long-form subexpressions, see the [Assignments](#assignments) section above.
@@ -632,7 +677,7 @@ For long-form subexpressions, see the [Assignments](#assignments) section above.
 
 ### Abbreviations and Acronyms
 
-Abbreviations and acroynms _SHOULD_ only be used when they are well-known or commonly userd.
+Abbreviations and acronyms _ARE NOT RECOMMENDED_ unless they are well-known or commonly used.
 
 ::: details Example
 
@@ -650,7 +695,7 @@ qry-usr --id 123
 
 #### Commands
 
-Kebab-case _IS RECOMMENDED_ for command names with multiple-words.
+- Kebab-case _IS RECOMMENDED_ for command and subcommand names with multiple words.
 
 ::: details Example
 
@@ -665,18 +710,14 @@ fetchUser --id 123
 
 :::
 
-See also [Naming Commands](custom_commands.md#naming-commands).
+- Subcommands _ARE RECOMMENDED_ when related commands can be logically grouped under a parent command.
+- A single space _IS RECOMMENDED_ beween the command and subcommand name.
 
-#### Sub-Commands
-
-Sub commands are commands that are logically grouped under a parent command and separated by a space.
-**It's recommended to** use kebab-case for the sub-command name.
-
-Correct:
+::: details Examples
 
 ```nu
+# Correct
 date now
-
 date list-timezone
 
 def "login basic-auth" [username: string password: string] {
@@ -684,55 +725,55 @@ def "login basic-auth" [username: string password: string] {
 }
 ```
 
-See also [Naming Sub-Commands](custom_commands.md#subcommands).
+:::
+
+See also:
+
+- [Naming Commands](custom_commands.md#naming-commands).
+- [Sub-Commands](custom_commands.md#subcommands).
 
 #### Flags
 
-**It's recommended to** use kebab-case for flag names.
+Kebab-case _IS RECOMMENDED_ for flag names.
 
-Correct:
+::: details Example
 
 ```nu
+# Preferred
 def greet [name: string, --all-caps] {
     # ...
 }
-```
 
-Incorrect:
-
-```nu
+# Not
 def greet [name: string, --all_caps] {
     # ...
 }
 ```
 
 ::: tip
-Notice that the name used to access the flag is accessed by replacing the dash with an underscore in the resulting
-variable name.
-
-See [Flags](custom_commands.md#flags).
+Remember that, in the variable name used to access the flag, the dash is replaced with an underscore. See [Custom Commands - Flags](custom_commands.md#flags).
 :::
 
 #### Variables and Command Parameters
 
-**It's recommended to** use snake_case for variable names, including command parameters.
+Snake case _IS RECOMMENDED_ for variable names, including command parameters
 
-Correct:
+::: details Examples
 
 ```nu
+# Preferred
 let user_id = 123
 
 def fetch-user [user_id: int] {
   # ...
 }
-```
 
-Incorrect:
-
-```nu
+# Incorrect - kebab-case variable name
 let user-id = 123
+# Incorrect - camel case variable name
 let userId = 123
 
+# Incorrect - kebab-case parameter name
 def fetch-user [user-id: int] {
   # ...
 }
@@ -740,33 +781,33 @@ def fetch-user [user-id: int] {
 
 #### Environment Variables
 
-**It's recommended to** use SCREAMING_SNAKE_CASE for environment variable names.
+SCREAMING_SNAKE_CASE _IS RECOMMENDED_ for environment variable names. Note that the internal `$env.config` variable is an exception to this rule.
 
-Correct:
+::: details Examples
 
 ```nu
+# Correct
 $env.ENVIRONMENT_CODE = "prod"
-
 $env.APP_VERSION = "1.0.0"
-```
 
-Incorrect:
-
-```nu
+# Incorrect - Screaming kebab
 $env.ENVIRONMENT-CODE = "prod"
 
+# Incorrect - snake case
 $env.app_version = "1.0.0"
 ```
 
-## Options and Parameters of Custom Commands
+:::
 
-- **It's recommended to** keep count of all positional parameters less than or equal to 2, for remaining inputs use options. Assume that command can expect source and destination parameter, like `mv`: source and target file or directory.
-- **It's recommended to** use positional parameters unless they can't be used due to rules listed here or technical restrictions.
-  For instance, when there are several kinds of optional parameters (but at least one parameter should be provided)
-  use options. Great example of this is `ansi gradient` command where at least foreground or background must be passed.
-- **It's recommended to** provide both long and short options.
+## Command Parameters
+
+- Using two or fewer positional parameters _IS RECOMMENDED_ in custom commands. Use optional parameters or flags for additional inputs whenever possible.
+- Both long and short options _ARE RECOMMENDED_ for flags.
 
 ## Documentation
 
-- **It's recommended to** provide documentation for all exported entities (like custom commands) and their
-  inputs (like custom command parameters and options).
+- A doc comment immediately above each `def` _IS RECOMMENDED_ for custom commands.
+- A doc comment starting on the first line of the file _IS RECOMMENDED_ for modules.
+- A doc comment following each custom command parameter _IS RECOMMENDED_.
+- Parameter type annotations _ARE RECOMMENDED_.
+- Type signatures for custom commands _ARE RECOMMENDED_.
